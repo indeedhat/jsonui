@@ -117,7 +117,13 @@ func setupUi() error {
 	if err := g.SetKeybinding(treeView, 'e', gocui.ModNone, toggleExpand); err != nil {
 		return err
 	}
+	if err := g.SetKeybinding(treeView, 'o', gocui.ModNone, toggleExpand); err != nil {
+		return err
+	}
 	if err := g.SetKeybinding(treeView, 'E', gocui.ModNone, expandAll); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding(treeView, 'O', gocui.ModNone, expandAll); err != nil {
 		return err
 	}
 	if err := g.SetKeybinding(treeView, 'C', gocui.ModNone, collapseAll); err != nil {
@@ -158,8 +164,8 @@ func helpMessage() string {
  k/ArrowUp       ═   Move a line up
  J/PageDown      ═   Move 15 line down
  K/PageUp        ═   Move 15 line up
- e               ═   Toggle expend/collapse node
- E               ═   Expand all nodes
+ e/o             ═   Toggle expend/collapse node
+ E/O             ═   Expand all nodes
  C               ═   Collapse all nodes`
 
 	if !clipboard.Unsupported {

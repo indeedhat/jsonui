@@ -37,6 +37,7 @@ jsonui -f /path/to/file.json
  - Load json from filepath
  - Copy selected path to clipboard
  - Copy selected value to clipboard
+ - Extra key bindings
 
 ## Keys
 
@@ -55,10 +56,10 @@ Move up 15 lines
 #### `h/?`
 Toggle Help view
 
-#### `e`
+#### `e/o`
 Toggle node (expend or collapse)
 
-#### `E`
+#### `E/O`
 Expand all nodes
 
 #### `C`
