@@ -7,10 +7,11 @@ import (
 	"math"
 	"strings"
 
+	"github.com/atotto/clipboard"
 	"github.com/jroimartin/gocui"
 )
 
-const VERSION = "1.0.1"
+const VERSION = "1.2.0"
 
 const (
 	treeView = "tree"
@@ -122,6 +123,16 @@ func setupUi() error {
 	if err := g.SetKeybinding(treeView, 'C', gocui.ModNone, collapseAll); err != nil {
 		return err
 	}
+
+	if !clipboard.Unsupported {
+		if err := g.SetKeybinding(treeView, 'y', gocui.ModNone, copyPathToClipboard); nil != err {
+			return err
+		}
+		if err := g.SetKeybinding(treeView, 'Y', gocui.ModNone, copyValueToClipboard); nil != err {
+			return err
+		}
+	}
+
 	if err := g.SetKeybinding("", 'h', gocui.ModNone, toggleHelp); err != nil {
 		return err
 	}
@@ -138,19 +149,31 @@ func setupUi() error {
 	return nil
 }
 
-const helpMessage = `
-JSONUI - Help
+func helpMessage() string {
+
+	helpMessage := `
+ JSONUI - Help
 ----------------------------------------------
-j/ArrowDown		═ 	Move a line down
-k/ArrowUp 		═ 	Move a line up
-J/PageDown		═ 	Move 15 line down
-K/PageUp 		═ 	Move 15 line up
-e				═ 	Toggle expend/collapse node
-E				═ 	Expand all nodes
-C				═ 	Collapse all nodes
-q/ctrl+c		═ 	Exit
-h/?				═ 	Toggle help message
+ j/ArrowDown     ═   Move a line down
+ k/ArrowUp       ═   Move a line up
+ J/PageDown      ═   Move 15 line down
+ K/PageUp        ═   Move 15 line up
+ e               ═   Toggle expend/collapse node
+ E               ═   Expand all nodes
+ C               ═   Collapse all nodes`
+
+	if !clipboard.Unsupported {
+		helpMessage += `
+ y               =   Copy path to clipboard
+ Y               =   Copy value to clipboard`
+	}
+
+	helpMessage += `
+ q/ctrl+c        ═   Exit
+ h/?             ═   Toggle help message
 `
+	return helpMessage
+}
 
 func layout(g *gocui.Gui) error {
 	var views = []string{treeView, textView, pathView}
@@ -178,9 +201,9 @@ func layout(g *gocui.Gui) error {
 		}
 	}
 	if helpWindowToggle {
-		height := strings.Count(helpMessage, "\n") + 1
+		height := strings.Count(helpMessage(), "\n") + 1
 		width := -1
-		for _, line := range strings.Split(helpMessage, "\n") {
+		for _, line := range strings.Split(helpMessage(), "\n") {
 			width = int(math.Max(float64(width), float64(len(line)+2)))
 		}
 		if v, err := g.SetView(helpView, maxX/2-width/2, maxY/2-height/2, maxX/2+width/2, maxY/2+height/2); err != nil {
@@ -188,7 +211,7 @@ func layout(g *gocui.Gui) error {
 				return err
 
 			}
-			fmt.Fprintln(v, helpMessage)
+			fmt.Fprintln(v, helpMessage())
 
 		}
 	} else {
@@ -356,6 +379,23 @@ func cursorMovement(d int) func(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 }
+
+func copyPathToClipboard(g *gocui.Gui, v *gocui.View) error {
+	path := getPath(g, v)
+	return clipboard.WriteAll(path)
+}
+
+func copyValueToClipboard(g *gocui.Gui, v *gocui.View) error {
+	p := findTreePosition(g)
+	treeTodraw := tree.find(p)
+
+	if treeTodraw != nil {
+		return clipboard.WriteAll(treeTodraw.String(2, 0))
+	}
+
+	return nil
+}
+
 func toggleHelp(g *gocui.Gui, v *gocui.View) error {
 	helpWindowToggle = !helpWindowToggle
 	return nil

@@ -2,7 +2,9 @@
 
 `jsonui` is an interactive JSON explorer in your command line. You can pipe any JSON into `jsonui` and explore it, copy the path for each element.
 
-*Note:* this is a fork of [gulyasm/jsonui](https://github.com/gulyasm/jsonui)
+*Note:* this is a fork of [gulyasm/jsonui](https://github.com/gulyasm/jsonui) and all the hard work along with the credit
+lies squarely on the shoulders of gulyasm.\
+I have mearly added some quality of life updates
 
 ![](img/jsonui.gif)
 
@@ -30,7 +32,13 @@ and is supported on:
 jsonui -f /path/to/file.json
 ```
 
-### Keys
+## QOL Changes
+ - Load json from clipboard
+ - Load json from filepath
+ - Copy selected path to clipboard
+ - Copy selected value to clipboard
+
+## Keys
 
 #### `j`, `DownArrow`
 Move down a line
@@ -55,6 +63,14 @@ Expand all nodes
 
 #### `C`
 Collapse all nodes
+
+#### `y`
+Copy the path (currently displayed in path panel) to the clipboard\
+(only available if clipboard is supported on your system)
+
+#### `Y`
+Copy the value (currently displayed in text panel) to the clipboard\
+(only available if clipboard is supported on your system)
 
 #### `q/Ctrl+C`
 Quit jsonui
