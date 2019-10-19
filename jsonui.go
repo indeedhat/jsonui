@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"log"
 	"math"
-	"os"
 	"strings"
 
 	"github.com/jroimartin/gocui"
@@ -72,72 +71,71 @@ var viewPositions = map[string]viewPosition{
 
 var tree treeNode
 
-func main() {
+func setupUi() error {
 	var err error
-	tree, err = fromReader(os.Stdin)
-	if err != nil {
-		log.Panicln(err)
-	}
+
 	g, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
-		log.Panicln(err)
+		return err
 	}
 	defer g.Close()
 
 	g.SetManagerFunc(layout)
 
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
-		log.Panicln(err)
+		return err
 	}
 	if err := g.SetKeybinding("", 'q', gocui.ModNone, quit); err != nil {
-		log.Panicln(err)
+		return err
 	}
 
 	if err := g.SetKeybinding(treeView, 'k', gocui.ModNone, cursorMovement(-1)); err != nil {
-		log.Panicln(err)
+		return err
 	}
 	if err := g.SetKeybinding(treeView, 'j', gocui.ModNone, cursorMovement(1)); err != nil {
-		log.Panicln(err)
+		return err
 	}
 	if err := g.SetKeybinding(treeView, gocui.KeyArrowUp, gocui.ModNone, cursorMovement(-1)); err != nil {
-		log.Panicln(err)
+		return err
 	}
 	if err := g.SetKeybinding(treeView, gocui.KeyArrowDown, gocui.ModNone, cursorMovement(1)); err != nil {
-		log.Panicln(err)
+		return err
 	}
 	if err := g.SetKeybinding(treeView, 'K', gocui.ModNone, cursorMovement(-15)); err != nil {
-		log.Panicln(err)
+		return err
 	}
 	if err := g.SetKeybinding(treeView, 'J', gocui.ModNone, cursorMovement(15)); err != nil {
-		log.Panicln(err)
+		return err
 	}
 	if err := g.SetKeybinding(treeView, gocui.KeyPgup, gocui.ModNone, cursorMovement(-15)); err != nil {
-		log.Panicln(err)
+		return err
 	}
 	if err := g.SetKeybinding(treeView, gocui.KeyPgdn, gocui.ModNone, cursorMovement(15)); err != nil {
-		log.Panicln(err)
+		return err
 	}
 	if err := g.SetKeybinding(treeView, 'e', gocui.ModNone, toggleExpand); err != nil {
-		log.Panicln(err)
+		return err
 	}
 	if err := g.SetKeybinding(treeView, 'E', gocui.ModNone, expandAll); err != nil {
-		log.Panicln(err)
+		return err
 	}
 	if err := g.SetKeybinding(treeView, 'C', gocui.ModNone, collapseAll); err != nil {
-		log.Panicln(err)
+		return err
 	}
 	if err := g.SetKeybinding("", 'h', gocui.ModNone, toggleHelp); err != nil {
-		log.Panicln(err)
+		return err
 	}
 	if err := g.SetKeybinding("", '?', gocui.ModNone, toggleHelp); err != nil {
-		log.Panicln(err)
+		return err
 	}
 	g.SelFgColor = gocui.ColorBlack
 	g.SelBgColor = gocui.ColorGreen
 
 	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
-		log.Panicln(err)
+		return err
 	}
+
+	return nil
 }
 
 const helpMessage = `

@@ -1,20 +1,33 @@
 # JSONUI
-[![](https://travis-ci.org/gulyasm/jsonui.svg?branch=master)](https://travis-ci.org/gulyasm/jsonui) [![](https://goreportcard.com/badge/github.com/gulyasm/jsonui)](https://goreportcard.com/report/github.com/gulyasm/jsonui)
 
 `jsonui` is an interactive JSON explorer in your command line. You can pipe any JSON into `jsonui` and explore it, copy the path for each element.
+
+*Note:* this is a fork of [gulyasm/jsonui](https://github.com/gulyasm/jsonui)
 
 ![](img/jsonui.gif)
 
 ## Install
-`go get -u github.com/gulyasm/jsonui`
-
-## Binary Releases
-[Binary releases are availabe](https://github.com/gulyasm/jsonui/releases)
+`go get -u github.com/indeedhat/jsonui`
 
 ## Usage
-Just use the standard output:
-```
+
+### Standard output
+```bash
 cat test_big.json | jsonui
+```
+### Clipboard
+```bash
+jsonui -c
+```
+Clipboard support is handled by [atotto/clipboard](https://github.com/atotto/clipboard)
+and is supported on:
+- OSX
+- Windows 7 (probably work on other Windows)
+- Linux, Unix (requires 'xclip' or 'xsel' command to be installed)
+
+### From File
+```bash
+jsonui -f /path/to/file.json
 ```
 
 ### Keys
