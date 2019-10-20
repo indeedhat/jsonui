@@ -24,6 +24,7 @@ type treePosition []string
 func (t treePosition) empty() bool {
 	return len(t) == 0
 }
+
 func (t treePosition) shift() treePosition {
 	newLength := len(t) - 1
 	newPosition := make([]string, newLength, newLength)

@@ -14,10 +14,11 @@ import (
 const VERSION = "1.2.0"
 
 const (
-	treeView = "tree"
-	textView = "text"
-	pathView = "path"
-	helpView = "help"
+	treeView    = "tree"
+	textView    = "text"
+	pathView    = "path"
+	helpView    = "help"
+	messageView = "messge"
 )
 
 type position struct {
@@ -48,6 +49,7 @@ func (vp viewPosition) getCoordinates(maxX, maxY int) (int, int, int, int) {
 }
 
 var helpWindowToggle = false
+var messageViewText = ""
 
 var viewPositions = map[string]viewPosition{
 	treeView: {
@@ -114,6 +116,15 @@ func setupUi() error {
 	if err := g.SetKeybinding(treeView, gocui.KeyPgdn, gocui.ModNone, cursorMovement(15)); err != nil {
 		return err
 	}
+
+	if err := g.SetKeybinding(treeView, 'g', gocui.ModNone, cursorJump(-1)); err != nil {
+		return err
+	}
+
+	if err := g.SetKeybinding(treeView, 'G', gocui.ModNone, cursorJump(1)); err != nil {
+		return err
+	}
+
 	if err := g.SetKeybinding(treeView, 'e', gocui.ModNone, toggleExpand); err != nil {
 		return err
 	}
@@ -127,6 +138,10 @@ func setupUi() error {
 		return err
 	}
 	if err := g.SetKeybinding(treeView, 'C', gocui.ModNone, collapseAll); err != nil {
+		return err
+	}
+
+	if err := g.SetKeybinding(treeView, gocui.KeyEnter, gocui.ModNone, clearMessageView); err != nil {
 		return err
 	}
 
@@ -155,15 +170,21 @@ func setupUi() error {
 	return nil
 }
 
+func showMessage(message string) {
+	messageViewText = message
+}
+
 func helpMessage() string {
 
 	helpMessage := `
  JSONUI - Help
-----------------------------------------------
+---------------------------------------------------
  j/ArrowDown     ═   Move a line down
  k/ArrowUp       ═   Move a line up
  J/PageDown      ═   Move 15 line down
  K/PageUp        ═   Move 15 line up
+ g               =   Move to top of the tree
+ G               =   Move to the bottom of the tree
  e/o             ═   Toggle expend/collapse node
  E/O             ═   Expand all nodes
  C               ═   Collapse all nodes`
@@ -175,6 +196,7 @@ func helpMessage() string {
 	}
 
 	helpMessage += `
+ Enter           =   Close Message window
  q/ctrl+c        ═   Exit
  h/?             ═   Toggle help message
 `
@@ -223,6 +245,25 @@ func layout(g *gocui.Gui) error {
 	} else {
 		g.DeleteView(helpView)
 	}
+
+	if "" != messageViewText {
+		height := strings.Count(messageViewText, "\n") + 2
+		width := -1
+		for _, line := range strings.Split(helpMessage(), "\n") {
+			width = int(math.Max(float64(width), float64(len(line)+2)))
+		}
+		if v, err := g.SetView(messageView, maxX/2-width/2, maxY/2-height/2, maxX/2+width/2, maxY/2+height/2); err != nil {
+			if err != gocui.ErrUnknownView {
+				return err
+
+			}
+			fmt.Fprintln(v, messageViewText)
+
+		}
+	} else {
+		g.DeleteView(messageView)
+	}
+
 	_, err := g.SetCurrentView(treeView)
 	if err != nil {
 		log.Fatal("failed to set current view: ", err)
@@ -230,6 +271,7 @@ func layout(g *gocui.Gui) error {
 	return nil
 
 }
+
 func getPath(g *gocui.Gui, v *gocui.View) string {
 	p := findTreePosition(g)
 	for i, s := range p {
@@ -375,35 +417,66 @@ func cursorMovement(d int) func(g *gocui.Gui, v *gocui.View) error {
 		}
 		distance := int(math.Abs(float64(d)))
 		for ; distance > 0; distance-- {
-			if lineBelow(v, distance*dir) {
-				v.MoveCursor(0, distance*dir, false)
+			if lineBelow(v, dir) {
+				v.MoveCursor(0, dir, false)
 				drawJSON(g, v)
 				drawPath(g, v)
-				return nil
 			}
 		}
 		return nil
 	}
 }
 
+func cursorJump(direction int) func(g *gocui.Gui, v *gocui.View) error {
+	return func(g *gocui.Gui, v *gocui.View) error {
+		xMax := len(v.BufferLines())
+
+		// TODO: this is not fast, there must be a better way
+		if direction < 0 {
+			return cursorMovement(-xMax)(g, v)
+		} else {
+			return cursorMovement(xMax)(g, v)
+		}
+
+		return nil
+	}
+}
+
 func copyPathToClipboard(g *gocui.Gui, v *gocui.View) error {
 	path := getPath(g, v)
-	return clipboard.WriteAll(path)
+	err := clipboard.WriteAll(path)
+	if nil != err {
+		return err
+	}
+
+	showMessage("Path coppied to clipboard")
+	return nil
 }
 
 func copyValueToClipboard(g *gocui.Gui, v *gocui.View) error {
 	p := findTreePosition(g)
 	treeTodraw := tree.find(p)
 
-	if treeTodraw != nil {
-		return clipboard.WriteAll(treeTodraw.String(2, 0))
+	if nil == treeTodraw {
+		return nil
 	}
 
+	err := clipboard.WriteAll(treeTodraw.String(2, 0))
+	if nil != err {
+		return err
+	}
+
+	showMessage("Current node coppied to clipboard")
 	return nil
 }
 
 func toggleHelp(g *gocui.Gui, v *gocui.View) error {
 	helpWindowToggle = !helpWindowToggle
+	return nil
+}
+
+func clearMessageView(g *gocui.Gui, v *gocui.View) error {
+	showMessage("")
 	return nil
 }
 

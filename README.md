@@ -38,6 +38,7 @@ jsonui -f /path/to/file.json
  - Copy selected path to clipboard
  - Copy selected value to clipboard
  - Extra key bindings
+ - Fix for page up/dow (can now scroll past the end of the visible tree)
 
 ## Keys
 
@@ -52,6 +53,12 @@ Move down 15 lines
 
 #### `K/PageUp`
 Move up 15 lines
+
+#### `g`
+Move to the top of the tree
+
+#### `G`
+Move to the bottom of the tree
 
 #### `h/?`
 Toggle Help view
