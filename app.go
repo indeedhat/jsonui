@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 
 	"github.com/atotto/clipboard"
@@ -54,7 +53,7 @@ func (j *JsonUi) Run() int {
 
 		tree, err = fromBytes([]byte(json))
 	} else {
-		tree, err = fromReader(os.Stdin)
+		tree, err = fromStandardInput()
 	}
 
 	if nil != err {

@@ -468,10 +468,21 @@ func fromBytes(b []byte) (treeNode, error) {
 	return newTree(y)
 }
 
-func fromReader(r io.Reader) (treeNode, error) {
+func fromStandardInput() (treeNode, error) {
+	s, err := os.Stdin.Stat()
+	if nil != err {
+		return nil, fmt.Errorf("Failed to stat standard in pipe")
+	}
+
+	if 0 == s.Size() {
+		return nil, fmt.Errorf("No data on standard input")
+	}
+
 	b, err := ioutil.ReadAll(os.Stdin)
+
 	if err != nil {
 		return nil, err
 	}
+
 	return fromBytes(b)
 }
