@@ -419,10 +419,11 @@ func cursorMovement(d int) func(g *gocui.Gui, v *gocui.View) error {
 		for ; distance > 0; distance-- {
 			if lineBelow(v, dir) {
 				v.MoveCursor(0, dir, false)
-				drawJSON(g, v)
-				drawPath(g, v)
 			}
 		}
+
+		drawJSON(g, v)
+		drawPath(g, v)
 		return nil
 	}
 }
@@ -431,7 +432,6 @@ func cursorJump(direction int) func(g *gocui.Gui, v *gocui.View) error {
 	return func(g *gocui.Gui, v *gocui.View) error {
 		xMax := len(v.BufferLines())
 
-		// TODO: this is not fast, there must be a better way
 		if direction < 0 {
 			return cursorMovement(-xMax)(g, v)
 		} else {
