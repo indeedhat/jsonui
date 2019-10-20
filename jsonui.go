@@ -14,11 +14,11 @@ import (
 const VERSION = "1.2.0"
 
 const (
-	treeView    = "tree"
-	textView    = "text"
-	pathView    = "path"
-	helpView    = "help"
-	messageView = "messge"
+	treeView    = "TREE"
+	textView    = "TEXT"
+	pathView    = "PATH"
+	helpView    = "HELP"
+	messageView = "MESSGE"
 )
 
 type position struct {
@@ -55,20 +55,20 @@ var viewPositions = map[string]viewPosition{
 	treeView: {
 		position{0.0, 0},
 		position{0.0, 0},
-		position{0.3, 2},
-		position{0.9, 2},
+		position{0.3, 1},
+		position{0.9, 1},
 	},
 	textView: {
 		position{0.3, 0},
 		position{0.0, 0},
-		position{1.0, 2},
-		position{0.9, 2},
+		position{1.0, 1},
+		position{0.9, 1},
 	},
 	pathView: {
 		position{0.0, 0},
 		position{0.89, 0},
-		position{1.0, 2},
-		position{1.0, 2},
+		position{1.0, 1},
+		position{1.0, 1},
 	},
 }
 
@@ -141,7 +141,7 @@ func setupUi() error {
 		return err
 	}
 
-	if err := g.SetKeybinding(treeView, gocui.KeyEnter, gocui.ModNone, clearMessageView); err != nil {
+	if err := g.SetKeybinding(treeView, gocui.KeyEnter, gocui.ModNone, clearFloatingViews); err != nil {
 		return err
 	}
 
@@ -171,14 +171,18 @@ func setupUi() error {
 }
 
 func showMessage(message string) {
-	messageViewText = message
+	if "" == message {
+		messageViewText = ""
+	} else {
+		messageViewText = " " + message
+	}
 }
 
 func helpMessage() string {
 
 	helpMessage := `
  JSONUI - Help
----------------------------------------------------
+----------------------------------------------------
  j/ArrowDown     ═   Move a line down
  k/ArrowUp       ═   Move a line up
  J/PageDown      ═   Move 15 line down
@@ -196,10 +200,9 @@ func helpMessage() string {
 	}
 
 	helpMessage += `
- Enter           =   Close Message window
+ Enter           =   Close Message/Help window
  q/ctrl+c        ═   Exit
- h/?             ═   Toggle help message
-`
+ h/?             ═   Toggle help message`
 	return helpMessage
 }
 
@@ -228,40 +231,13 @@ func layout(g *gocui.Gui) error {
 
 		}
 	}
-	if helpWindowToggle {
-		height := strings.Count(helpMessage(), "\n") + 1
-		width := -1
-		for _, line := range strings.Split(helpMessage(), "\n") {
-			width = int(math.Max(float64(width), float64(len(line)+2)))
-		}
-		if v, err := g.SetView(helpView, maxX/2-width/2, maxY/2-height/2, maxX/2+width/2, maxY/2+height/2); err != nil {
-			if err != gocui.ErrUnknownView {
-				return err
 
-			}
-			fmt.Fprintln(v, helpMessage())
-
-		}
-	} else {
-		g.DeleteView(helpView)
+	if err := renderHelpView(g); nil != err {
+		return err
 	}
 
-	if "" != messageViewText {
-		height := strings.Count(messageViewText, "\n") + 2
-		width := -1
-		for _, line := range strings.Split(helpMessage(), "\n") {
-			width = int(math.Max(float64(width), float64(len(line)+2)))
-		}
-		if v, err := g.SetView(messageView, maxX/2-width/2, maxY/2-height/2, maxX/2+width/2, maxY/2+height/2); err != nil {
-			if err != gocui.ErrUnknownView {
-				return err
-
-			}
-			fmt.Fprintln(v, messageViewText)
-
-		}
-	} else {
-		g.DeleteView(messageView)
+	if err := renderMessageView(g); nil != err {
+		return err
 	}
 
 	_, err := g.SetCurrentView(treeView)
@@ -270,6 +246,59 @@ func layout(g *gocui.Gui) error {
 	}
 	return nil
 
+}
+
+func renderHelpView(g *gocui.Gui) error {
+	maxX, maxY := g.Size()
+
+	if helpWindowToggle {
+		height := strings.Count(helpMessage(), "\n") + 1
+		width := -1
+
+		for _, line := range strings.Split(helpMessage(), "\n") {
+			width = int(math.Max(float64(width), float64(len(line)+2)))
+		}
+
+		if v, err := g.SetView(helpView, maxX/2-width/2, maxY/2-height/2, maxX/2+width/2, maxY/2+height/2); err != nil {
+			if err != gocui.ErrUnknownView {
+				return err
+			}
+
+			fmt.Fprintln(v, helpMessage())
+		}
+	} else {
+		g.DeleteView(helpView)
+	}
+
+	return nil
+}
+
+func renderMessageView(g *gocui.Gui) error {
+	maxX, maxY := g.Size()
+
+	if "" != messageViewText {
+		height := strings.Count(messageViewText, "\n") + 2
+		width := -1
+
+		for _, line := range strings.Split(messageViewText, "\n") {
+			width = int(math.Max(
+				float64(width),
+				float64(len(line)+2),
+			))
+		}
+
+		if v, err := g.SetView(messageView, maxX/2-width/2, maxY/2-height/2, maxX/2+width/2, maxY/2+height/2); err != nil {
+			if err != gocui.ErrUnknownView {
+				return err
+			}
+
+			fmt.Fprintln(v, messageViewText)
+		}
+	} else {
+		g.DeleteView(messageView)
+	}
+
+	return nil
 }
 
 func getPath(g *gocui.Gui, v *gocui.View) string {
@@ -475,8 +504,9 @@ func toggleHelp(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func clearMessageView(g *gocui.Gui, v *gocui.View) error {
+func clearFloatingViews(g *gocui.Gui, v *gocui.View) error {
 	showMessage("")
+	helpWindowToggle = false
 	return nil
 }
 
