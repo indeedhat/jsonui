@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"regexp"
 	"strings"
 
 	"github.com/atotto/clipboard"
@@ -46,7 +47,20 @@ func drawJSON(g *gocui.Gui, v *gocui.View) error {
 	treeTodraw := tree.find(p)
 	if treeTodraw != nil {
 		dv.Clear()
-		fmt.Fprintf(dv, treeTodraw.String(2, 0))
+
+		rawString := treeTodraw.String(2, 0)
+
+		if '"' == rawString[0] {
+			expr := regexp.MustCompile(`\\n`)
+			normal := string(expr.ReplaceAll([]byte(rawString), []byte("\n")))
+
+			fmt.Fprintf(
+				dv,
+				normal[1:len(normal)-1],
+			)
+		} else {
+			fmt.Fprintf(dv, treeTodraw.String(2, 0))
+		}
 	}
 	return nil
 }
@@ -177,11 +191,9 @@ func cursorJump(direction int) func(g *gocui.Gui, v *gocui.View) error {
 
 		if direction < 0 {
 			return cursorMovement(-xMax)(g, v)
-		} else {
-			return cursorMovement(xMax)(g, v)
 		}
 
-		return nil
+		return cursorMovement(xMax)(g, v)
 	}
 }
 

@@ -55,11 +55,11 @@ type baseTreeNode struct {
 	expanded bool
 }
 
-func (n *baseTreeNode) isExpanded() bool {
+func (n baseTreeNode) isExpanded() bool {
 	return n.expanded
 }
 
-func (n *baseTreeNode) toggleExpanded() {
+func (n baseTreeNode) toggleExpanded() {
 	n.expanded = !n.expanded
 }
 
@@ -307,9 +307,9 @@ type stringNode struct {
 	data string
 }
 
-func (n *stringNode) collapseAll() {
+func (n stringNode) collapseAll() {
 }
-func (n *stringNode) expandAll() {
+func (n stringNode) expandAll() {
 }
 
 func (n stringNode) isCollapsable() bool {
@@ -321,7 +321,10 @@ func (n stringNode) find(tp treePosition) treeNode {
 }
 
 func (n stringNode) String(_, _ int) string {
-	return fmt.Sprintf("%q", n.data)
+	return fmt.Sprintf(
+		"%q",
+		n.data,
+	)
 }
 
 func (n stringNode) search(query string) (treeNode, error) {
