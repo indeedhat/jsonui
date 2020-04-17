@@ -8,7 +8,7 @@ build: installdep
 	@go fmt
 	@go vet
 	# @golint
-	@go test ./...
+	# @go test ./...
 	@go build
 
 cover:
